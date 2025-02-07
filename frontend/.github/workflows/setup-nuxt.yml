@@ -1,0 +1,99 @@
+name: Setup Nuxt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      CONTAINER_NAME: nuxt-container
+      IMAGE_NAME: nuxt-image
+      TAR_FILE: nuxt-image.tar
+      DESTINATION_PATH: /home/docker/frontend
+      REMOTE_HOST: ${{ secrets.SERVER_IP }}
+      REMOTE_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # SSH
+
+      - name: Create SSH directory
+        run: |
+          mkdir -p ~/.ssh
+
+      - name: Setup SSH
+        run: |
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Update SSH config
+        run: |
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
+      - name: Add server to known_hosts
+        run: |
+          ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+
+      # DOCKER
+
+      - name: Build Nuxt Docker image
+        run: |
+          docker compose build
+
+      - name: Save Nuxt image to a tar file
+        run: |
+          docker save $IMAGE_NAME -o $TAR_FILE
+
+      - name: Remove old Docker container on remote server
+        run: |
+          ssh -tt $REMOTE_USER@$REMOTE_HOST "
+            if [ \$(docker ps -a --filter 'name=$CONTAINER_NAME' -q) ]; then
+                docker stop $CONTAINER_NAME
+                docker rm -f $CONTAINER_NAME
+            fi
+          "
+
+      - name: Remove old Docker images on remote server
+        run: |
+          ssh -tt $REMOTE_USER@$REMOTE_HOST "
+            IMAGE_IDS=\$(docker images -q $IMAGE_NAME)
+
+            if [ -n \"\$IMAGE_IDS\" ]; then
+              docker rmi -f \$IMAGE_IDS
+            fi
+          "
+
+      # DOCKER IMAGE
+
+      - name: Create destination directory on remote server
+        run: |
+          ssh -tt $REMOTE_USER@$REMOTE_HOST "mkdir -p $DESTINATION_PATH"
+
+      - name: Copy Docker image to remote server
+        run: |
+          scp $TAR_FILE $REMOTE_USER@$REMOTE_HOST:$DESTINATION_PATH
+
+      - name: Copy Docker Compose Config to remote server
+        run: |
+          scp docker-compose.yml $REMOTE_USER@$REMOTE_HOST:$DESTINATION_PATH
+
+      # DOCKER DEPLOY
+
+      - name: Load Docker image on remote server
+        run: |
+          ssh -tt $REMOTE_USER@$REMOTE_HOST "docker load -i $DESTINATION_PATH/$TAR_FILE"
+
+      - name: Run Nuxt container on remote server
+        run: |
+          ssh -tt $REMOTE_USER@$REMOTE_HOST "
+            cd $DESTINATION_PATH
+            docker-compose up -d
+          "

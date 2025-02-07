@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-laptop;
+
+    @screen max-tablet {
+      @apply text-tablet;
+    }
+
+    @screen max-phone {
+      @apply text-phone;
+    }
+  }
+
+  h1 {
+    @apply text-4xl;
+    @apply font-semibold;
+
+    @screen max-phone {
+      @apply text-3xl;
+    }
+  }
+
+  h2 {
+    @apply text-3xl;
+    @apply font-semibold;
+
+    @screen max-phone {
+      @apply text-2xl;
+    }
+  }
+
+  h3 {
+    @apply text-2xl;
+    @apply font-semibold;
+    
+    @screen max-phone {
+      @apply text-xl;
+    }
+  }
+
+  h4 {
+    @apply text-xl;
+    @apply font-semibold;
+
+    @screen max-phone {
+      @apply text-lg;
+    }
+  }
+
+  p {
+    @apply text-gray-500;
+    @apply leading-7;
+  }
+}
+
+@layer components {
+  .app {
+    @apply flex;
+    @apply flex-col;
+    
+    /** Позволяет занять всю страницу. */
+    @apply min-h-screen;
+    
+    /** Для определённого шрифта под названием `Manrope`. */
+    @apply font-medium;
+
+    /** Цветовые варианты. */
+
+    &._tertiary {
+      @apply bg-tertiary-100;
+    }
+
+    &._accent {
+      @apply bg-accent-100;
+    }
+
+    &._primary {
+      @apply bg-primary-100;
+    }
+  }
+
+  .app-main {
+    @apply flex;
+    @apply flex-col;
+    @apply grow;
+    @apply shrink;
+  }
+
+  .app-container {
+    /** Контейнер требуется только, если экран превышает стандартные 1920. */
+    @screen min-extra-desktop {
+      @apply container;
+      @apply mx-auto;
+    }
+
+    @screen max-extra-desktop {
+      @apply px-8;
+    }
+  }
+
+  @mixin app-button-large {
+    @apply px-12;
+    @apply py-8;
+    @apply rounded-button-large;
+  }
+
+  @mixin app-button-medium {
+    @apply px-8;
+    @apply py-5;
+    @apply rounded-button-medium;
+  }
+
+  @mixin app-button-small {
+    @apply px-6;
+    @apply py-4;
+    @apply rounded-button-small;
+  }
+
+  .app-button {
+    @apply w-max;
+
+    @include app-button-medium;
+
+    @screen max-tablet {
+      @include app-button-small;
+    }
+
+    &:disabled {
+      @apply bg-tertiary-200;
+      @apply text-tertiary-500;
+
+      &:hover {
+        @apply bg-tertiary-200;
+      }
+    }
+
+    /** Анимация. */
+
+    @apply duration-300;
+
+    /** Размеры. */
+
+    &._large {
+      @include app-button-large;
+    }
+
+    &._medium {
+      @include app-button-medium;
+    }
+
+    &._small {
+      @include app-button-small;
+    }
+
+    /** Цветовые варианты. */
+
+    &._tertiary {
+      @apply text-black;
+      @apply bg-tertiary;
+
+      &:hover {
+        @apply bg-tertiary-hover;
+      }
+    }
+
+    &._accent {
+      @apply text-white;
+      @apply bg-accent;
+
+      &:hover {
+        @apply bg-accent-hover;
+      }
+
+      &:disabled {
+        @apply text-white;
+        @apply bg-accent-200;
+  
+        &:hover {
+          @apply bg-accent-200;
+        }
+      }
+    }
+
+    &._primary {
+      @apply bg-primary;
+      @apply text-white;
+
+      &:hover {
+        @apply bg-primary-hover;
+      }
+    }
+  }
+
+  .app-link {
+    /** Анимация. */
+
+    @apply duration-300;
+
+    /** Цветовые варианты. */
+
+    &._tertiary {
+      @apply text-tertiary-600;
+
+      &:hover {
+        @apply text-tertiary-950;
+      }
+    }
+
+    &._accent {
+      @apply text-accent;
+
+      &:hover {
+        @apply text-accent-hover;
+      }
+    }
+
+    &._primary {
+      @apply text-primary;
+
+      &:hover {
+        @apply text-primary-hover;
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+openapi: 3.0.0
+info:
+  title: Fart LM API
+  version: 1.0.0
+  description: API for processing audio files
+
+paths:
+  /health:
+    get:
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+
+  /fart:
+    post:
+      summary: Process audio file
+      operationId: processAudio
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                audio:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Processed audio file
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error

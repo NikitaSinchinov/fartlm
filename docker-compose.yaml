@@ -1,0 +1,37 @@
+services:
+  back:
+    container_name: back
+    build:
+      context: .
+      dockerfile: back/Dockerfile
+    environment:
+      BACK_PORT: $BACK_CONTAINER_PORT
+      BACK_EXTERNAL_API_PORT: $BACK_EXTERNAL_API_PORT
+    volumes:
+      - /home/shared/fartlm/fartbank/sounds:/back/sounds
+    ports:
+      - "$BACK_PORT:$BACK_CONTAINER_PORT"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:$BACK_CONTAINER_PORT/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    container_name: frontend
+    build:
+      context: frontend
+      dockerfile: .docker/Dockerfile
+    environment:
+      PORT: $FRONT_CONTAINER_PORT
+    ports:
+      - "$FRONT_PORT:$FRONT_CONTAINER_PORT"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost $FRONT_CONTAINER_PORT"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

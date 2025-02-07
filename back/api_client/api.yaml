@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: Audio Conversion API
+  description: API for audio conversion and model management.
+  version: 1.0.0
+servers:
+- url: '{protocol}://{host}:{port}'
+  variables:
+    protocol:
+      default: http
+    host:
+      default: localhost
+    port:
+      default: '5050'
+paths:
+  /convert:
+    post:
+      summary: Converts audio data using the currently loaded model.
+      description: Accepts base64 encoded audio data in WAV format and returns the converted audio as WAV data.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                audio_data:
+                  type: string
+                  description: Base64 encoded audio data
+      responses:
+        200:
+          description: Converted audio data in WAV format
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+        400:
+          description: Invalid audio data or no model loaded
+        500:
+          description: Internal server error
+
+  /convert_file:
+    post:
+      summary: Converts an uploaded audio file using the currently loaded model.
+      description: Accepts an audio file in WAV format and returns the converted audio as WAV data.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Audio file to be converted
+      responses:
+        200:
+          description: Converted audio data in WAV format
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+        400:
+          description: Invalid file or no model loaded
+        500:
+          description: Internal server error
+
+  /models:
+    get:
+      summary: Lists available models.
+      description: Returns a JSON response with the list of model names.
+      responses:
+        200:
+          description: List of available models
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: string
+        500:
+          description: Internal server error
+
+  /models/{model_name}:
+    post:
+      summary: Loads a model by name.
+      description: Loads the model from the models directory.
+      parameters:
+        - in: path
+          name: model_name
+          required: true
+          schema:
+            type: string
+          description: The name of the model to load
+      responses:
+        200:
+          description: Success message indicating the model has been loaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Error loading the model
+        500:
+          description: Internal server error
+
+  /params:
+    get:
+      summary: Retrieves current parameters used for inference.
+      description: Returns a JSON response with the parameters used for inference.
+      responses:
+        200:
+          description: Current inference parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  f0method:
+                    type: string
+                  f0up_key:
+                    type: string
+                  index_rate:
+                    type: number
+                  filter_radius:
+                    type: number
+                  resample_sr:
+                    type: number
+                  rms_mix_rate:
+                    type: number
+                  protect:
+                    type: boolean
+        500:
+          description: Internal server error
+    post:
+      summary: Sets parameters for inference.
+      description: Accepts a JSON object with parameter names and values to set new parameters for inference.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                params:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        200:
+          description: Success message indicating the parameters have been updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Error setting parameters
+        500:
+          description: Internal server error
+
+  /upload_model:
+    post:
+      summary: Uploads and extracts a ZIP file containing models.
+      description: Uploads a ZIP file, extracts models, and places them in the models directory.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: ZIP file containing models
+      responses:
+        200:
+          description: Success message indicating models were uploaded and extracted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        500:
+          description: Internal server error
+
+  /set_device:
+    post:
+      summary: Sets the device for inference (e.g., 'cpu:0' or 'cuda:0').
+      description: Sets the device to be used for model inference.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device:
+                  type: string
+                  description: Device to set (e.g., 'cpu:0', 'cuda:0')
+      responses:
+        200:
+          description: Success message indicating the device has been set
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Invalid device name or error setting device
+
+  /set_models_dir:
+    post:
+      summary: Sets a new directory for models.
+      description: Changes the models directory to the specified path.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                models_dir:
+                  type: string
+                  description: New models directory path
+      responses:
+        200:
+          description: Success message indicating the models directory has been set
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Invalid directory path or error setting the models directory
+        500:
+          description: Internal server error
